@@ -12,7 +12,7 @@ template <typename Tree>
 class ImplicitTreeTest: public ::testing::Test {};
 
 typedef ::testing::Types< treap<treap_node<int, int>> > SearchTreeTypes;
-typedef ::testing::Types< treap<treap_node<null_type, int>> > ImplicitSearchTreeTypes;
+typedef ::testing::Types< treap<implicit_treap_node<int>> > ImplicitSearchTreeTypes;
 
 TYPED_TEST_SUITE(SearchTreeTest, SearchTreeTypes);
 TYPED_TEST_SUITE(ImplicitTreeTest, ImplicitSearchTreeTypes);
@@ -83,4 +83,21 @@ TYPED_TEST(ImplicitTreeTest, SimpleTest) {
     tree.insert_kth(3, 100);
     ASSERT_EQ(tree.get_kth(3)->value, 100);
     ASSERT_EQ(tree.get_kth(4)->value, 0);
+}
+
+TYPED_TEST(ImplicitTreeTest, CutTest) {
+    TypeParam tree;
+
+    std::vector<int> values = {6, -1, 0, -1, 0, 10, 15};
+    for (int val : values) {
+        tree.insert_kth(tree.size(), val);
+    }
+
+    TypeParam t = {tree.cut_subsegment(2, 5)};
+    ASSERT_EQ(tree.get_kth(2)->value, 15);
+    ASSERT_EQ(t.get_kth(0)->value, 0);
+
+    tree.insert_subsegment(2, t.root);
+    ASSERT_EQ(tree.get_kth(2)->value, 0);
+    ASSERT_EQ(tree.get_kth(3)->value, -1);
 }
