@@ -26,7 +26,7 @@ public:
         return result;
     } 
 
-    Node* search(const key_t& key) {
+    Node* find(const key_t& key) {
         Node* node = tree<Node>::root;
         while (node != nullptr) {
             if (node->key == key) {
@@ -40,12 +40,15 @@ public:
         return nullptr;
     }
 
-    Node* get_min() {
-        Node* node = tree<Node>::root;
+    Node* min_in_subtree(Node* node) {
         while (node != nullptr && node->left != nullptr) {
             node = node->left;
         }
         return node;
+    }
+
+    Node* get_min() {
+        return min_in_subtree(tree<Node>::root);
     }
 
     Node* get_kth(size_t k) {
@@ -93,7 +96,7 @@ public:
     }
 
     bool exists(const key_t& key) {
-        return search(key) != nullptr;
+        return find(key) != nullptr;
     }
 
     size_t size()  {

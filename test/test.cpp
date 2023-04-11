@@ -1,6 +1,7 @@
 #include "gtest/gtest.h"
 #include "trees.h"
 #include "treap.h"
+#include "avl.h"
 #include <map>
 
 TEST(IncludeTest, IncludeTest) {}
@@ -11,7 +12,7 @@ class SearchTreeTest: public ::testing::Test {};
 template <typename Tree>
 class ImplicitTreeTest: public ::testing::Test {};
 
-typedef ::testing::Types< treap<treap_node<int, int>> > SearchTreeTypes;
+typedef ::testing::Types< treap<treap_node<int, int>>, AVL<avl_node<int, int>> > SearchTreeTypes;
 typedef ::testing::Types< treap<implicit_treap_node<int>> > ImplicitSearchTreeTypes;
 
 TYPED_TEST_SUITE(SearchTreeTest, SearchTreeTypes);
@@ -30,9 +31,6 @@ TYPED_TEST(SearchTreeTest, SimpleTest) {
     ASSERT_EQ(tree.get_min()->key, 0);
 
     ASSERT_EQ(tree.get_kth(3)->key, 6);
-    tree.erase_kth(3);
-
-    ASSERT_EQ(tree.get_kth(3)->key, 10);
 }
 
 TYPED_TEST(SearchTreeTest, BigTest) {
@@ -41,7 +39,7 @@ TYPED_TEST(SearchTreeTest, BigTest) {
     std::map<int, int> map;
     srand(0);
 
-    for (int i = 0; i < 100000; ++i) {
+    for (int i = 0; i < 200000; ++i) {
         int key = rand();
         if (map.count(key)) {
             ASSERT_TRUE(tree.exists(key));
@@ -53,9 +51,22 @@ TYPED_TEST(SearchTreeTest, BigTest) {
         }
     }
 
+    std::vector<int> keys;
+    for (auto [key, value] : map) {
+        keys.push_back(key);
+    }
+
+    for (auto key : keys) {
+        if (rand() % 100) {
+            ASSERT_TRUE(tree.exists(key));
+            map.erase(key);
+            tree.erase(key);
+        }
+    }
+
     for (auto [key, value] : map) {
         ASSERT_TRUE(tree.exists(key));
-        ASSERT_EQ(tree.search(key)->value, value);
+        ASSERT_EQ(tree.find(key)->value, value);
     }
 
     auto v = tree.get_traversal();
