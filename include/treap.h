@@ -12,12 +12,13 @@ public:
     void insert(const key_t& key, Args&&... args);
     void insert(Node* node);
 
-    void remove(const key_t& key);
-    void remove_kth(size_t k);
+    void erase(const key_t& key);
+    void erase_kth(size_t k);
 
     template <typename... Args>
     void insert_kth(size_t k, Args&&... args);
     void insert_kth(size_t k, Node* node);
+    size_t order_of_key(const key_t& key);
 
     static Node* merge(Node* left, Node* right);
     static std::pair<Node*, Node*> split(Node* node, const key_t& key);
@@ -107,14 +108,14 @@ void treap<Node>::insert(Node* node) {
 }
 
 template <typename Node>
-void treap<Node>::remove(const key_t& key) {
+void treap<Node>::erase(const key_t& key) {
     auto [left, right] = split(this->root, key);
     auto [left2, right2] = split_k(right, 1);
     this->root = merge(left, right2);
 }
 
 template <typename Node>
-void treap<Node>::remove_kth(size_t k) {
+void treap<Node>::erase_kth(size_t k) {
     auto [left, right] = split_k(this->root, k);
     auto [left2, right2] = split_k(right, 1);
     this->root = merge(left, right2);
@@ -130,6 +131,14 @@ template<typename Node>
 void treap<Node>::insert_kth(size_t k, Node* node) {
     auto [left, right] = split_k(this->root, k);
     this->root = merge(merge(left, node), right);
+}
+
+template <typename Node>
+size_t treap<Node>::order_of_key(const key_t& key) {
+    auto [left, right] = split(this->root, key);
+    size_t res = get_size(left);
+    this->root = merge(left, right);
+    return res;
 }
 
 using rnd_t = std::mt19937;
@@ -171,3 +180,9 @@ struct implicit_treap_node : public treap_node_template<null_type, implicit_trea
     implicit_treap_node(const Value& value) : treap_node_template<null_type, implicit_treap_node<Value>>(), value(value) {}
 };
 
+template <typename Key>
+struct key_treap_node : public treap_node_template<Key, key_treap_node<Key>> {
+    using treap_node_template<Key, key_treap_node<Key>>::treap_node_template;
+
+    key_treap_node(const Key& key) : treap_node_template<Key, key_treap_node<Key>>(key) {}
+};

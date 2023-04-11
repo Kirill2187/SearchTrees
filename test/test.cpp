@@ -26,11 +26,11 @@ TYPED_TEST(SearchTreeTest, SimpleTest) {
     }
     ASSERT_EQ(tree.get_min()->key, -1);
 
-    tree.remove(-1);
+    tree.erase(-1);
     ASSERT_EQ(tree.get_min()->key, 0);
 
     ASSERT_EQ(tree.get_kth(3)->key, 6);
-    tree.remove_kth(3);
+    tree.erase_kth(3);
 
     ASSERT_EQ(tree.get_kth(3)->key, 10);
 }
@@ -45,7 +45,7 @@ TYPED_TEST(SearchTreeTest, BigTest) {
         int key = rand();
         if (map.count(key)) {
             ASSERT_TRUE(tree.exists(key));
-            tree.remove(key);
+            tree.erase(key);
             map.erase(key);
         } else {
             tree.insert(key, i);
@@ -75,7 +75,7 @@ TYPED_TEST(ImplicitTreeTest, SimpleTest) {
     ASSERT_EQ(tree.get_kth(0)->value, 6);
     ASSERT_EQ(tree.get_kth(1)->value, -1);
 
-    tree.remove_kth(0);
+    tree.erase_kth(0);
     ASSERT_EQ(tree.get_kth(0)->value, -1);
 
     ASSERT_EQ(tree.get_kth(3)->value, 0);

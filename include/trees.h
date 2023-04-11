@@ -100,6 +100,18 @@ public:
         return get_size(tree<Node>::root);
     }
 
+    void destroy(Node* node) {
+        if (node == nullptr) return;
+        destroy(node->left);
+        destroy(node->right);
+        delete node;
+    }
+
+    void clear() {
+        destroy(tree<Node>::root);
+        tree<Node>::root = nullptr;
+    }
+
 private:
     void traversal(Node* node, std::vector<Node*>& result) {
         if (node == nullptr) return;
