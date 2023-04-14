@@ -18,7 +18,6 @@ public:
     template <typename... Args>
     void insert_kth(size_t k, Args&&... args);
     void insert_kth(size_t k, Node* node);
-    size_t order_of_key(const key_t& key);
 
     static Node* merge(Node* left, Node* right);
     static std::pair<Node*, Node*> split(Node* node, const key_t& key);
@@ -131,14 +130,6 @@ template<typename Node>
 void treap<Node>::insert_kth(size_t k, Node* node) {
     auto [left, right] = split_k(this->root, k);
     this->root = merge(merge(left, node), right);
-}
-
-template <typename Node>
-size_t treap<Node>::order_of_key(const key_t& key) {
-    auto [left, right] = split(this->root, key);
-    size_t res = get_size(left);
-    this->root = merge(left, right);
-    return res;
 }
 
 using rnd_t = std::mt19937;

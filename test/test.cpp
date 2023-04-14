@@ -13,7 +13,7 @@ template <typename Tree>
 class ImplicitTreeTest: public ::testing::Test {};
 
 typedef ::testing::Types< treap<treap_node<int, int>>, AVL<avl_node<int, int>> > SearchTreeTypes;
-typedef ::testing::Types< treap<implicit_treap_node<int>> > ImplicitSearchTreeTypes;
+typedef ::testing::Types< treap<implicit_treap_node<int>>, AVL<implicit_avl_node<int>> > ImplicitSearchTreeTypes;
 
 TYPED_TEST_SUITE(SearchTreeTest, SearchTreeTypes);
 TYPED_TEST_SUITE(ImplicitTreeTest, ImplicitSearchTreeTypes);
@@ -111,4 +111,30 @@ TYPED_TEST(ImplicitTreeTest, CutTest) {
     tree.insert_subsegment(2, t.root);
     ASSERT_EQ(tree.get_kth(2)->value, 0);
     ASSERT_EQ(tree.get_kth(3)->value, -1);
+}
+
+TYPED_TEST(ImplicitTreeTest, BigTest) {
+    TypeParam tree;
+    std::vector<int> values;
+    srand(0);
+
+    for (int i = 0; i < 200000; ++i) {
+        int type = rand() % 3;
+        if (type <= 1) {
+            int val = rand();
+            int pos = rand() % (values.size() + 1);
+
+            tree.insert_kth(pos, val);
+            values.insert(values.begin() + pos, val);
+        } else {
+            if (values.size() == 0) continue;
+            int pos = rand() % values.size();
+            tree.erase_kth(pos);
+            values.erase(values.begin() + pos);
+        }
+    }
+
+    for (int i = 0; i < values.size(); ++i) {
+        ASSERT_EQ(tree.get_kth(i)->value, values[i]);
+    }
 }

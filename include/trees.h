@@ -95,6 +95,25 @@ public:
         return result;
     }
 
+    static size_t order_of_key(Node* node, const key_t& key) {
+        size_t result = 0;
+        while (node != nullptr) {
+            if (node->key == key) {
+                return result + get_size(node->left);
+            } else if (node->key > key) {
+                node = node->left;
+            } else {
+                result += get_size(node->left) + 1;
+                node = node->right;
+            }
+        }
+        return result;
+    }
+
+    size_t order_of_key(const key_t& key) {
+        return order_of_key(tree<Node>::root, key);
+    }
+
     bool exists(const key_t& key) {
         return find(key) != nullptr;
     }
@@ -115,7 +134,7 @@ public:
         tree<Node>::root = nullptr;
     }
 
-private:
+protected:
     void traversal(Node* node, std::vector<Node*>& result) {
         if (node == nullptr) return;
         traversal(node->left, result);
