@@ -1,6 +1,6 @@
 #pragma once
 
-#include <trees.h>
+#include "trees.h"
 
 template <typename Node>
 class AVL: public binary_tree<Node> {
@@ -260,10 +260,9 @@ void AVL<Node>::insert_subsegment(size_t i, Node* t) {
 
 template <typename Node>
 void AVL<Node>::erase_kth(size_t k) {
-    auto [left, right] = split_k(this->root, k);
-    auto [mid, right2] = split_k(right, 1);
+    auto [left, mid, right] = _split_k(this->root, k + 1);
     delete mid;
-    this->root = merge(left, right2);
+    this->root = merge(left, right);
 }
 
 
@@ -277,7 +276,7 @@ struct avl_node_template {
     Node* right;
     size_t size;
 
-    avl_node_template(const key_t& key, Node* parent = nullptr)
+    avl_node_template(const key_t& key)
         : key(key), height(1), left(nullptr), right(nullptr) {
         update();
     }
@@ -307,4 +306,13 @@ struct implicit_avl_node: avl_node_template<null_type, implicit_avl_node<Value>>
 
     implicit_avl_node(const Value& value)
         : avl_node_template<null_type, implicit_avl_node<Value>>(null_type()), value(value) {}
+};
+
+template <typename Key>
+struct key_avl_node : avl_node_template<Key, key_avl_node<Key>> {
+    using avl_node_template<Key, key_avl_node<Key>>::avl_node_template;
+    using key_t = Key;
+
+    key_avl_node(const key_t& key)
+        : avl_node_template<Key, key_avl_node<Key>>(key) {}
 };
