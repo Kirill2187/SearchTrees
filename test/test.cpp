@@ -13,11 +13,16 @@ class SearchTreeTest: public ::testing::Test {};
 template <typename Tree>
 class ImplicitTreeTest: public ::testing::Test {};
 
+template <typename Tree>
+class ReverseTreeTest: public ::testing::Test {};
+
 typedef ::testing::Types< treap<treap_node<int, int>>, AVL<avl_node<int, int>>, rb_tree<rb_node<int, int>> > SearchTreeTypes;
-typedef ::testing::Types< treap<implicit_treap_node<int>>, AVL<implicit_avl_node<int>>, rb_tree<implicit_rb_node<int>> > ImplicitSearchTreeTypes;
+typedef ::testing::Types< treap<treap_implicit_node<int>>, AVL<avl_implicit_node<int>>, rb_tree<rb_implicit_node<int>> > ImplicitSearchTreeTypes;
+typedef ::testing::Types< treap<treap_implicit_reverse_node<int>>, AVL<avl_implicit_reverse_node<int>>, rb_tree<rb_implicit_reverse_node<int>> > ReverseSearchTreeTypes;
 
 TYPED_TEST_SUITE(SearchTreeTest, SearchTreeTypes);
 TYPED_TEST_SUITE(ImplicitTreeTest, ImplicitSearchTreeTypes);
+TYPED_TEST_SUITE(ReverseTreeTest, ReverseSearchTreeTypes);
 
 TYPED_TEST(SearchTreeTest, SimpleTest) {
     TypeParam tree;
@@ -169,5 +174,64 @@ TYPED_TEST(ImplicitTreeTest, PerfomanceTest) {
             int pos = rand() % tree.size();
             tree.erase_kth(pos);
         }
+    }
+}
+
+template <typename Tree>
+void reverse_segment(Tree& tree, int l, int r) {
+    auto node = tree.cut_subsegment(l, r);
+    node->reverse();
+    tree.insert_subsegment(l, node);
+}
+
+TYPED_TEST(ReverseTreeTest, SimpleTest) {
+    TypeParam tree;
+
+    std::vector<int> values = {6, -1, 0, -1, 0, 10, 15};
+    for (int val : values) {
+        tree.insert_kth(tree.size(), val);
+    }
+
+    reverse_segment(tree, 2, 5);
+
+    ASSERT_EQ(tree.get_kth(2)->value, 10);
+    ASSERT_EQ(tree.get_kth(3)->value, 0);
+    reverse_segment(tree, 4, 5);
+    ASSERT_EQ(tree.get_kth(5)->value, -1);
+    reverse_segment(tree, 0, 6);
+    tree.insert_kth(0, 100);
+    ASSERT_EQ(tree.get_kth(0)->value, 100);
+    ASSERT_EQ(tree.get_kth(1)->value, 15);
+}
+
+TYPED_TEST(ReverseTreeTest, BigTest) {
+    TypeParam tree;
+    std::vector<int> values;
+    srand(0);
+
+    for (int i = 0; i < 100000; ++i) {
+        int type = rand() % 5;
+        if (type <= 1 || values.size() <= 1) {
+            int val = rand() % 1000;
+            int pos = rand() % (values.size() + 1);
+
+            tree.insert_kth(pos, val);
+            values.insert(values.begin() + pos, val);
+        } else if (type == 2) {
+            int pos = rand() % values.size();
+            tree.erase_kth(pos);
+            values.erase(values.begin() + pos);
+        } else {
+            int l, r;
+            l = rand() % (values.size() - 1);
+            r = l + rand() % (values.size() - l);
+
+            reverse_segment(tree, l, r);
+            std::reverse(values.begin() + l, values.begin() + r + 1);
+        }
+    }
+
+    for (int i = 0; i < values.size(); ++i) {
+        ASSERT_EQ(tree.get_kth(i)->value, values[i]);
     }
 }

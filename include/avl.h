@@ -58,8 +58,10 @@ char get_balance(Node* node) {
 
 template <typename Node>
 Node* AVL<Node>::rotate_right(Node* pivot) {
+    if (pivot) pivot->push();
     Node* q = pivot->left;
-    if (q == nullptr) throw std::runtime_error("rotate_right: q == nullptr");
+    if (q) q->push();
+    else throw std::runtime_error("rotate_right: q == nullptr");
 
     pivot->left = q->right;
     q->right = pivot;
@@ -72,8 +74,10 @@ Node* AVL<Node>::rotate_right(Node* pivot) {
 
 template <typename Node>
 Node* AVL<Node>::rotate_left(Node* pivot) {
+    if (pivot) pivot->push();
     Node* q = pivot->right;
-    if (q == nullptr) throw std::runtime_error("rotate_left: q == nullptr");
+    if (q) q->push();
+    else throw std::runtime_error("rotate_left: q == nullptr");
 
     pivot->right = q->left;
     q->left = pivot;
@@ -87,6 +91,7 @@ Node* AVL<Node>::rotate_left(Node* pivot) {
 template <typename Node>
 Node* AVL<Node>::balance(Node* node) {
     node->update();
+    node->push();
     if (get_balance(node) == 2) {
         if (get_balance(node->right) < 0) {
             node->right = rotate_right(node->right);
@@ -105,6 +110,7 @@ Node* AVL<Node>::balance(Node* node) {
 template <typename Node>
 Node* AVL<Node>::_insert(Node* node, Node* parent) {
     if (!parent) return node;
+    parent->push();
     if (node->key == parent->key) {
         delete node;
         return parent;
@@ -140,6 +146,7 @@ Node* AVL<Node>::_remove_min(Node *parent) {
 template <typename Node>
 Node* AVL<Node>::_erase(Node* parent, const key_t& key) {
     if (!parent) return nullptr;
+    parent->push();
     if (key < parent->key) {
         parent->left = _erase(parent->left, key);
     } else if (key > parent->key) {
@@ -178,9 +185,11 @@ Node* AVL<Node>::_merge(Node *left, Node *mid, Node *right) {
         mid->left = left;
         mid->right = right;
         mid->update();
+        mid->push();
         return mid;
     }
 
+    higher->push();
     if (left_is_higher) {
         higher->right = _merge(higher->right, mid, lower);
     } else {
@@ -201,6 +210,8 @@ Node* AVL<Node>::merge(Node* left, Node* right) {
 template <typename Node>
 std::tuple<Node*, Node*, Node*> AVL<Node>::_split_k(Node* node, size_t k) {
     if (!node) return std::make_tuple(nullptr, nullptr, nullptr);
+    node->push();
+
     if (get_size(node->left) + 1 == k) {
         auto res = std::make_tuple(node->left, node, node->right);
         clear_vertex(node);
@@ -276,6 +287,9 @@ struct avl_node_template {
     Node* right;
     size_t size;
 
+    avl_node_template() : height(1), left(nullptr), right(nullptr) {
+        update();
+    }
     avl_node_template(const key_t& key)
         : key(key), height(1), left(nullptr), right(nullptr) {
         update();
@@ -285,34 +299,18 @@ struct avl_node_template {
         height = 1 + std::max(get_height(left), get_height(right));
         size = 1 + get_size(left) + get_size(right);
     }
+
+    void push() {}
 };
 
-template <typename Key, typename Value = null_type>
-struct avl_node: avl_node_template<Key, avl_node<Key, Value>> {
-    using avl_node_template<Key, avl_node<Key, Value>>::avl_node_template;
-    using key_t = Key;
-
-    [[no_unique_address]] Value value;
-
-    avl_node(const key_t& key, const Value& value)
-        : avl_node_template<Key, avl_node<Key, Value>>(key), value(value) {}
-};
+template <typename Key, typename Value>
+using avl_node = common_node<avl_node_template, Key, Value>;
 
 template <typename Value>
-struct implicit_avl_node: avl_node_template<null_type, implicit_avl_node<Value>> {
-    using avl_node_template<null_type, implicit_avl_node<Value>>::avl_node_template;
-
-    Value value;
-
-    implicit_avl_node(const Value& value)
-        : avl_node_template<null_type, implicit_avl_node<Value>>(null_type()), value(value) {}
-};
+using avl_implicit_node = implicit_node<avl_node_template, Value>;
 
 template <typename Key>
-struct key_avl_node : avl_node_template<Key, key_avl_node<Key>> {
-    using avl_node_template<Key, key_avl_node<Key>>::avl_node_template;
-    using key_t = Key;
+using avl_key_node = key_node<avl_node_template, Key>;
 
-    key_avl_node(const key_t& key)
-        : avl_node_template<Key, key_avl_node<Key>>(key) {}
-};
+template <typename Value>
+using avl_implicit_reverse_node = implicit_reverse_node<avl_node_template, Value>;

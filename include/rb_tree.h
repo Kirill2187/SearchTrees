@@ -39,6 +39,7 @@ private:
 template <typename Node>
 void rb_tree<Node>::clear_vertex(Node *node) {
     if (node == nullptr) return;
+    node->push();
     if (node->left) {
         node->left->parent = nullptr;
         node->left->set_black(true);
@@ -147,6 +148,11 @@ void rb_tree<Node>::rotate_left(Node *pivot) {
     Node* pivot_parent = pivot->parent;
     bool pivot_is_left = pivot_parent && pivot_parent->left == pivot;
 
+    if (pivot->parent && pivot->parent->parent) pivot->parent->parent->push();
+    if (pivot->parent) pivot->parent->push();
+    pivot->push();
+    new_pivot->push();
+
     pivot->right = new_pivot->left;
     if (new_pivot->left) new_pivot->left->parent = pivot;
     new_pivot->left = pivot;
@@ -173,6 +179,11 @@ void rb_tree<Node>::rotate_right(Node *pivot) {
 
     Node* pivot_parent = pivot->parent;
     bool pivot_is_left = pivot_parent && pivot_parent->left == pivot;
+
+    if (pivot->parent && pivot->parent->parent) pivot->parent->parent->push();
+    if (pivot->parent) pivot->parent->push();
+    pivot->push();
+    new_pivot->push();
 
     pivot->left = new_pivot->right;
     if (new_pivot->right) new_pivot->right->parent = pivot;
@@ -211,11 +222,15 @@ std::pair<Node*, Node*> rb_tree<Node>::_merge_no_fix(Node *left, Node *mid, Node
         mid->set_black(false);
         mid->parent = nullptr;
         mid->update();
+        mid->push();
         if (left) left->parent = mid;
         if (right) right->parent = mid;
 
         return {mid, mid};
     }
+
+    if (left) left->push();
+    if (right) right->push();
 
     bool left_is_higher = get_black_height(left) > get_black_height(right);
     Node* higher = left_is_higher ? left : right;
@@ -266,6 +281,7 @@ Node* rb_tree<Node>::merge(Node* left, Node* right) {
 template <typename Node>
 std::tuple<Node*, Node*, Node*> rb_tree<Node>::_split_k(Node* node, size_t k) {
     if (!node) return std::make_tuple(nullptr, nullptr, nullptr);
+    node->push();
     Node* node_left = node->left;
     Node* node_right = node->right;
     clear_vertex(node);
@@ -358,6 +374,9 @@ struct rb_node_template {
     Node* parent = nullptr;
     size_t size;
 
+    rb_node_template() : left(nullptr), right(nullptr), size(1) {
+        update();
+    }
     rb_node_template(const key_t& key)
             : key(key), left(nullptr), right(nullptr), size(1) {
         update();
@@ -381,34 +400,19 @@ struct rb_node_template {
         update_black_height();
         size = 1 + get_size(left) + get_size(right);
     }
+
+    void push() {}
 };
 
 template <typename Key, typename Value>
-struct rb_node: rb_node_template<Key, rb_node<Key, Value>> {
-    using rb_node_template<Key, rb_node<Key, Value>>::rb_node_template;
-    using key_t = Key;
-
-    [[no_unique_address]] Value value;
-
-    rb_node(const key_t& key, const Value& value)
-            : rb_node_template<Key, rb_node<Key, Value>>(key), value(value) {}
-};
+using rb_node = common_node<rb_node_template, Key, Value>;
 
 template <typename Value>
-struct implicit_rb_node: rb_node_template<null_type, implicit_rb_node<Value>> {
-    using rb_node_template<null_type, implicit_rb_node<Value>>::rb_node_template;
-
-    Value value;
-
-    implicit_rb_node(const Value& value)
-            : rb_node_template<null_type, implicit_rb_node<Value>>(null_type()), value(value) {}
-};
+using rb_implicit_node = implicit_node<rb_node_template, Value>;
 
 template <typename Key>
-struct key_rb_node : rb_node_template<Key, key_rb_node<Key>> {
-    using rb_node_template<Key, key_rb_node<Key>>::rb_node_template;
-    using key_t = Key;
+using rb_key_node = key_node<rb_node_template, Key>;
 
-    key_rb_node(const key_t& key)
-            : rb_node_template<Key, key_rb_node<Key>>(key) {}
-};
+template <typename Value>
+using rb_implicit_reverse_node = implicit_reverse_node<rb_node_template, Value>;
+

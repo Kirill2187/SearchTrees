@@ -32,6 +32,7 @@ std::pair<Node*, Node*> treap<Node>::split(Node* node, const key_t& key) {
     if (node == nullptr) {
         return {nullptr, nullptr};
     }
+    node->push();
     if (node->key < key) {
         auto [left, right] = split(node->right, key);
         node->right = left;
@@ -48,6 +49,8 @@ std::pair<Node*, Node*> treap<Node>::split(Node* node, const key_t& key) {
 template <typename Node>
 std::pair<Node*, Node*> treap<Node>::split_k(Node* node, size_t k) {
     if (node == nullptr) return {nullptr, nullptr};
+    node->push();
+
     if (k == 0) return {nullptr, node};
     if (k == get_size(node)) return {node, nullptr};
 
@@ -69,6 +72,10 @@ template <typename Node>
 Node* treap<Node>::merge(Node* left, Node* right) {
     if (left == nullptr) return right;
     if (right == nullptr) return left;
+
+    right->push();
+    left->push();
+
     if (left->priority > right->priority) {
         left->right = merge(left->right, right);
         left->update();
@@ -153,27 +160,18 @@ public:
     void update() {
         size = 1 + get_size(left) + get_size(right);
     }
+
+    void push() {}
 };
 
-template <typename Key, typename Value=null_type>
-struct treap_node : public treap_node_template<Key, treap_node<Key, Value>> {
-    using treap_node_template<Key, treap_node<Key, Value>>::treap_node_template;
-    [[no_unique_address]] Value value;
-
-    treap_node(const Key& key, const Value& value) : treap_node_template<Key, treap_node<Key, Value>>(key), value(value) {}
-};
+template <typename Key, typename Value>
+using treap_node = common_node<treap_node_template, Key, Value>;
 
 template <typename Value>
-struct implicit_treap_node : public treap_node_template<null_type, implicit_treap_node<Value>> {
-    using treap_node_template<null_type, implicit_treap_node<Value>>::treap_node_template;
-    [[no_unique_address]] Value value;
-
-    implicit_treap_node(const Value& value) : treap_node_template<null_type, implicit_treap_node<Value>>(), value(value) {}
-};
+using treap_implicit_node = implicit_node<treap_node_template, Value>;
 
 template <typename Key>
-struct key_treap_node : public treap_node_template<Key, key_treap_node<Key>> {
-    using treap_node_template<Key, key_treap_node<Key>>::treap_node_template;
+using treap_key_node = key_node<treap_node_template, Key>;
 
-    key_treap_node(const Key& key) : treap_node_template<Key, key_treap_node<Key>>(key) {}
-};
+template <typename Value>
+using treap_implicit_reverse_node = implicit_reverse_node<treap_node_template, Value>;

@@ -29,6 +29,7 @@ public:
     Node* find(const key_t& key) {
         Node* node = tree<Node>::root;
         while (node != nullptr) {
+            node->push();
             if (node->key == key) {
                 return node;
             } else if (node->key > key) {
@@ -41,8 +42,10 @@ public:
     }
 
     Node* min_in_subtree(Node* node) {
+        if (node) node->push();
         while (node != nullptr && node->left != nullptr) {
             node = node->left;
+            node->push();
         }
         return node;
     }
@@ -54,6 +57,7 @@ public:
     Node* get_kth(size_t k) {
         Node* node = tree<Node>::root;
         while (node != nullptr) {
+            node->push();
             size_t left_size = get_size(node->left);
             if (left_size == k) {
                 return node;
@@ -71,6 +75,7 @@ public:
         Node* node = tree<Node>::root;
         Node* result = nullptr;
         while (node != nullptr) {
+            node->push();
             if (node->key > key) {
                 result = node;
                 node = node->left;
@@ -85,6 +90,7 @@ public:
         Node* node = tree<Node>::root;
         Node* result = nullptr;
         while (node != nullptr) {
+            node->push();
             if (node->key < key) {
                 result = node;
                 node = node->right;
@@ -98,6 +104,7 @@ public:
     static size_t order_of_key(Node* node, const key_t& key) {
         size_t result = 0;
         while (node != nullptr) {
+            node->push();
             if (node->key == key) {
                 return result + get_size(node->left);
             } else if (node->key > key) {
@@ -137,6 +144,7 @@ public:
 protected:
     void traversal(Node* node, std::vector<Node*>& result) {
         if (node == nullptr) return;
+        node->push();
         traversal(node->left, result);
         result.push_back(node);
         traversal(node->right, result);
@@ -150,6 +158,57 @@ size_t get_size(Node* node) {
     return node->size;
 }
 
+template <template<typename TKey, typename Node> class Template, typename Key, typename Value=null_type>
+struct common_node : public Template<Key, common_node<Template, Key, Value>> {
+    using Template<Key, common_node<Template, Key, Value> >::Template;
+    Value value;
+
+    common_node(const Key& key, const Value& value) : Template<Key, common_node<Template, Key, Value> >(key), value(value) {}
+};
+
+template <template<typename TKey, typename Node> class Template, typename Value>
+struct implicit_node : public Template<null_type, implicit_node<Template, Value>> {
+    using Template<null_type, implicit_node<Template, Value> >::Template;
+    Value value;
+
+    implicit_node(const Value& value) : Template<null_type, implicit_node<Template, Value> >(), value(value) {}
+};
+
+template <template<typename TKey, typename Node> class Template, typename Key>
+struct key_node : public Template<Key, key_node<Template, Key>> {
+    using Template<Key, key_node<Template, Key> >::Template;
+
+    key_node(const Key& key) : Template<Key, key_node<Template, Key> >(key) {}
+};
+
+template <template<typename TKey, typename Node> class Template, typename Value>
+struct implicit_reverse_node : public Template<null_type, implicit_reverse_node<Template, Value>> {
+    using Template<null_type, implicit_reverse_node<Template, Value> >::Template;
+
+    Value value;
+    bool reversed;
+
+    implicit_reverse_node(const Value& value) : Template<null_type, implicit_reverse_node<Template, Value> >(),
+            value(value), reversed(false) {}
+
+    void update() {
+        Template<null_type, implicit_reverse_node<Template, Value> >::update();
+        reversed = false;
+    }
+
+    void push() {
+        if (reversed) {
+            std::swap(this->left, this->right);
+            if (this->left != nullptr) this->left->reversed ^= 1;
+            if (this->right != nullptr) this->right->reversed ^= 1;
+            reversed = false;
+        }
+    }
+
+    void reverse() {
+        reversed ^= 1;
+    }
+};
 
 
 
