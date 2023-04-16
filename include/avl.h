@@ -25,6 +25,9 @@ public:
     Node* cut_subsegment(size_t l, size_t r);
     void insert_subsegment(size_t i, Node* t);
 
+    template<typename... Args>
+    void push_back(Args&&... args);
+
 private:
     static Node* rotate_left(Node* pivot);
     static Node* rotate_right(Node* pivot);
@@ -257,16 +260,16 @@ void AVL<Node>::insert_kth(size_t k, Args&&... args) {
 
 template <typename Node>
 Node* AVL<Node>::cut_subsegment(size_t l, size_t r) {
-    auto [left, right] = split_k(this->root, l);
+    auto [left, join, right] = _split_k(this->root, l);
     auto [mid, right2] = split_k(right, r - l + 1);
-    this->root = merge(left, right2);
+    this->root = _merge(left, join, right2);
     return mid;
 }
 
 template <typename Node>
 void AVL<Node>::insert_subsegment(size_t i, Node* t) {
-    auto [left, right] = split_k(this->root, i);
-    this->root = merge(merge(left, t), right);
+    auto [left, join, right] = _split_k(this->root, i);
+    this->root = merge(_merge(left, join, t), right);
 }
 
 template <typename Node>
@@ -276,6 +279,11 @@ void AVL<Node>::erase_kth(size_t k) {
     this->root = merge(left, right);
 }
 
+template <typename Node>
+template <typename... Args>
+void AVL<Node>::push_back(Args&&... args) {
+    this->root = _merge(this->root, new Node(std::forward<Args>(args)...), nullptr);
+}
 
 template <typename Key, typename Node>
 struct avl_node_template {

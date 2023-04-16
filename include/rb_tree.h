@@ -24,6 +24,9 @@ public:
     Node* cut_subsegment(size_t l, size_t r);
     void insert_subsegment(size_t i, Node* t);
 
+    template<typename... Args>
+    void push_back(Args&&... args);
+
 private:
     void rb_insert_fixup(Node* node);
     void rotate_left(Node* pivot);
@@ -328,16 +331,16 @@ void rb_tree<Node>::insert_kth(size_t k, Args&&... args) {
 
 template <typename Node>
 Node* rb_tree<Node>::cut_subsegment(size_t l, size_t r) {
-    auto [left, right] = split_k(this->root, l);
+    auto [left, join, right] = _split_k(this->root, l);
     auto [mid, right2] = split_k(right, r - l + 1);
-    this->root = merge(left, right2);
+    this->root = _merge(left, join, right2);
     return mid;
 }
 
 template <typename Node>
 void rb_tree<Node>::insert_subsegment(size_t i, Node* t) {
-    auto [left, right] = split_k(this->root, i);
-    this->root = merge(merge(left, t), right);
+    auto [left, join, right] = _split_k(this->root, i);
+    this->root = merge(_merge(left, join, t), right);
 }
 
 template <typename Node>
@@ -359,6 +362,31 @@ template <typename Node>
 template <typename... Args>
 void rb_tree<Node>::insert(const key_t& key, Args&&... args) {
     insert(new Node(key, std::forward<Args>(args)...));
+}
+
+template <typename Node>
+template <typename... Args>
+void rb_tree<Node>::push_back(Args&&... args) {
+    if (!this->root) {
+        this->root = new Node(std::forward<Args>(args)...);
+        return;
+    }
+    Node* cur = this->root;
+    Node* prev = nullptr;
+    while (cur) {
+        cur->push();
+        prev = cur;
+        cur = cur->right;
+    }
+    prev->right = new Node(std::forward<Args>(args)...);
+    prev->right->parent = prev;
+    prev->right->set_black(false);
+
+    for (cur = prev->right; cur != nullptr; cur = cur->parent) {
+        cur->update();
+    }
+
+    if (!prev->black) rb_insert_fixup(prev->right);
 }
 
 
