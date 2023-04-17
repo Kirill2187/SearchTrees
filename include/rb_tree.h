@@ -28,14 +28,14 @@ public:
     void push_back(Args&&... args);
 
 private:
-    void rb_insert_fixup(Node* node);
-    void rotate_left(Node* pivot);
-    void rotate_right(Node* pivot);
+    void inline rb_insert_fixup(Node* node);
+    void inline rotate_left(Node* pivot);
+    void inline rotate_right(Node* pivot);
 
     static Node* _merge(Node* left, Node* mid, Node* right);
     static std::pair<Node*, Node*> _merge_no_fix(Node* left, Node* mid, Node* right);
     static std::tuple<Node*, Node*, Node*> _split_k(Node* node, size_t k);
-    static void clear_vertex(Node* node);
+    static inline void clear_vertex(Node* node);
 
 };
 

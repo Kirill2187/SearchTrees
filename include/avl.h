@@ -29,9 +29,9 @@ public:
     void push_back(Args&&... args);
 
 private:
-    static Node* rotate_left(Node* pivot);
-    static Node* rotate_right(Node* pivot);
-    static Node* balance(Node* node);
+    static inline Node* rotate_left(Node* pivot);
+    static inline Node* rotate_right(Node* pivot);
+    static inline Node* balance(Node* node);
 
     static Node* _insert(Node* node, Node* parent);
     Node* _erase(Node* parent, const key_t& key);
@@ -289,7 +289,7 @@ template <typename Key, typename Node>
 struct avl_node_template {
     using key_t = Key;
 
-    key_t key;
+    [[no_unique_address]] key_t key;
     unsigned char height;
     Node* left;
     Node* right;
