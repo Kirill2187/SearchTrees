@@ -3,6 +3,7 @@
 #include "treap.h"
 #include "rb_tree.h"
 #include "avl.h"
+#include "splay_tree.h"
 #include <map>
 
 TEST(IncludeTest, IncludeTest) {}
@@ -16,9 +17,12 @@ class ImplicitTreeTest: public ::testing::Test {};
 template <typename Tree>
 class ReverseTreeTest: public ::testing::Test {};
 
-typedef ::testing::Types< treap<treap_node<int, int>>, AVL<avl_node<int, int>>, rb_tree<rb_node<int, int>> > SearchTreeTypes;
-typedef ::testing::Types< treap<treap_implicit_node<int>>, AVL<avl_implicit_node<int>>, rb_tree<rb_implicit_node<int>> > ImplicitSearchTreeTypes;
-typedef ::testing::Types< treap<treap_implicit_reverse_node<int>>, AVL<avl_implicit_reverse_node<int>>, rb_tree<rb_implicit_reverse_node<int>> > ReverseSearchTreeTypes;
+typedef ::testing::Types<   treap<treap_node<int, int>>, AVL<avl_node<int, int>>,
+                            rb_tree<rb_node<int, int>>, splay_tree<splay_node<int, int>> > SearchTreeTypes;
+typedef ::testing::Types<   treap<treap_implicit_node<int>>, AVL<avl_implicit_node<int>>,
+                            rb_tree<rb_implicit_node<int>>, splay_tree<splay_implicit_node<int>> > ImplicitSearchTreeTypes;
+typedef ::testing::Types<   treap<treap_implicit_reverse_node<int>>, AVL<avl_implicit_reverse_node<int>>,
+                            rb_tree<rb_implicit_reverse_node<int>>, splay_tree<splay_implicit_reverse_node<int>> > ReverseSearchTreeTypes;
 
 TYPED_TEST_SUITE(SearchTreeTest, SearchTreeTypes);
 TYPED_TEST_SUITE(ImplicitTreeTest, ImplicitSearchTreeTypes);
