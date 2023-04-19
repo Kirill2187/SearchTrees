@@ -193,6 +193,7 @@ struct implicit_reverse_node : public Template<null_type, implicit_reverse_node<
 
     void update() {
         Template<null_type, implicit_reverse_node<Template, Value> >::update();
+        assert(!reversed);
         reversed = false;
     }
 

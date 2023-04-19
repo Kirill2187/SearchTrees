@@ -1,5 +1,6 @@
 #pragma once
 
+#include <tuple>
 #include "trees.h"
 
 template <typename Node>
@@ -64,7 +65,6 @@ Node* AVL<Node>::rotate_right(Node* pivot) {
     if (pivot) pivot->push();
     Node* q = pivot->left;
     if (q) q->push();
-    else throw std::runtime_error("rotate_right: q == nullptr");
 
     pivot->left = q->right;
     q->right = pivot;
@@ -80,7 +80,6 @@ Node* AVL<Node>::rotate_left(Node* pivot) {
     if (pivot) pivot->push();
     Node* q = pivot->right;
     if (q) q->push();
-    else throw std::runtime_error("rotate_left: q == nullptr");
 
     pivot->right = q->left;
     q->left = pivot;
@@ -174,10 +173,13 @@ void AVL<Node>::erase(const key_t& key) {
 
 template <typename Node>
 Node* AVL<Node>::_merge(Node *left, Node *mid, Node *right) {
+    if (mid) mid->push();
+    if (left) left->push();
+    if (right) right->push();
+
     if (!mid) {
         if (!right) return left;
         if (!left) return right;
-        throw std::runtime_error("Invalid arguments to _merge");
     }
 
     bool left_is_higher = get_height(left) > get_height(right);
@@ -188,7 +190,6 @@ Node* AVL<Node>::_merge(Node *left, Node *mid, Node *right) {
         mid->left = left;
         mid->right = right;
         mid->update();
-        mid->push();
         return mid;
     }
 

@@ -219,13 +219,16 @@ bool is_black(Node* node) {
 
 template <typename Node>
 std::pair<Node*, Node*> rb_tree<Node>::_merge_no_fix(Node *left, Node *mid, Node *right) {
+    if (mid) mid->push();
+    if (left) left->push();
+    if (right) right->push();
+
     if (get_black_height(left) == get_black_height(right)) {
         mid->left = left;
         mid->right = right;
         mid->set_black(false);
         mid->parent = nullptr;
         mid->update();
-        mid->push();
         if (left) left->parent = mid;
         if (right) right->parent = mid;
 
@@ -260,7 +263,6 @@ Node* rb_tree<Node>::_merge(Node *left, Node *mid, Node *right) {
     if (!mid) {
         if (!left) return right;
         if (!right) return left;
-        throw std::runtime_error("mid is null");
     }
 
     auto [new_root, to_fix] = _merge_no_fix(left, mid, right);
